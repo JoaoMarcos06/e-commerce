@@ -12,7 +12,7 @@ class Page{
         "data" => [],   
     ];
     
-    public function __construct($opts = array(), $tpl_dir = '/views/'){
+    public function __construct($opts = array(), $tpl_dir = "/views/"){
         
         $this->options = array_merge($this->defaults, $opts);
         
@@ -26,6 +26,7 @@ class Page{
         Tpl::configure($config);
         
         $this->tpl = new Tpl;
+        
         
         $this->setData($this->options["data"]);
         
@@ -50,6 +51,10 @@ class Page{
     public function __destruct(){
         $this->tpl->draw("footer");
         
+    }
+    
+    public function getTpl(){
+        return $this->tpl;
     }
     
 }
