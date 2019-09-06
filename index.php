@@ -2,6 +2,8 @@
 session_start();
 require_once("vendor/autoload.php");
 
+
+
 use \Slim\Slim;
 use \Hcode\Page;
 use \Hcode\PageAdmin;
@@ -137,6 +139,76 @@ $app->post('/admin/users/:id', function($id){
     
     header("Location: /e-commerce/admin/users");
     exit;
+    
+});
+
+$app->get("/admin/forgot", function(){
+   
+    $page = new Page([
+        "header" => false,
+        "footer" =>false
+    ],'/views/admin/');
+    
+    $page->setTpl('forgot/forgot');
+    
+    
+});
+
+$app->post("/admin/forgot", function(){
+    
+    User::getForgot($_POST["email"]);
+    
+    header("Location: /e-commerce/admin/forgot/sent");
+    exit;
+    
+});
+
+$app->get("/admin/forgot/sent", function(){
+   
+    $page = new Page([
+        "header" => false,
+        "footer" =>false
+    ],'/views/admin/');
+    
+    $page->setTpl('forgot/forgot-sent');
+    
+    
+});
+
+$app->get("/admin/forgot/reset", function(){
+   
+    
+    $user = User::validCodeReset($_GET["code"]);
+    
+    $page = new Page([
+        "header" => false,
+        "footer" =>false
+    ],'/views/admin/');
+    
+    $page->setTpl('forgot/forgot-reset',array( "name" => $user["desperson"], "code" => $_GET["code"]));
+    
+});
+
+$app->post("/admin/forgot/reset", function(){
+   
+    $forgot = User::validCodeReset($_POST["code"]);
+    
+    User::setForgotUser($forgot["idrecovery"]);
+    
+    $user = new User();
+    
+    $user->get((int)$forgot["iduser"]);
+    
+    $password = password_hash($_POST["password"],PASSWORD_DEFAULT,["cost" => 12]);
+    
+    $user->setPassword($password);
+    
+    $page = new Page([
+        "header" => false,
+        "footer" =>false
+    ],'/views/admin/');
+    
+    $page->setTpl('forgot/forgot-reset-success');
     
 });
 

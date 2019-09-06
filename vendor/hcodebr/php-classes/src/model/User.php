@@ -4,10 +4,12 @@ namespace Hcode\Model;
 
 use \Hcode\DB\Sql;
 use \Hcode\Model;
+use \Hcode\MailerPHP;
 
 class User extends Model {
     
     const SESSION = "user";
+    const SECRET = "SERCRETKEYCRYPTED";
     
     public static function login($user, $pass){
         
@@ -122,6 +124,95 @@ class User extends Model {
         $results = $sql->select("CALL sp_users_delete(:iduser )",array(
             ":iduser" => $this->getiduser()
         ));
+        
+    }
+    
+    
+    public static function getForgot($email){
+        
+        $sql = new Sql();
+        
+        $results = $sql->select("SELECT * FROM tb_persons p INNER JOIN tb_users u USING(idperson) WHERE p.desemail = :email", array(
+            ":email" => $email));
+        
+        
+        if(count($results) === 0 ){
+            throw new \Exception("Não foi possível recuperar a senha ");
+        }else{
+            
+            $data = $results[0];
+            $recovery = $sql->select("CALL sp_userspasswordsrecoveries_create(:id,:desip)",array(
+                ":id" => $data["iduser"],
+                ":desip" => $_SERVER["REMOTE_ADDR"]
+            ));
+            
+            if(count($recovery) === 0){
+                throw new \Exception("Não foi possível recuperar a senha");
+            }else{
+                $dataRecovery = $recovery[0];
+                
+                $code = base64_encode(mcrypt_encrypt(MCRYPT_RIJNDAEL_128, User::SECRET, $dataRecovery["idrecovery"], MCRYPT_MODE_ECB));
+                $link = "http://localhost/e-commerce/admin/forgot/reset?code=".$code;
+                
+                $mailer = new MailerPHP($data["desemail"], $data["desperson"], "Redefinir senha", "forgot" ,array(
+                "name" => $data["desperson"],
+                "link" => $link    
+                ));
+                
+                $mailer->send();
+                
+                //return $data;
+                
+            }
+        }
+    }
+    
+    
+    public static function validCodeReset($code){
+                
+        $idrecovery = mcrypt_decrypt(MCRYPT_RIJNDAEL_128, User::SECRET, base64_decode($code), MCRYPT_MODE_ECB);
+        
+        
+        $sql = new Sql();
+        
+        $results = $sql->select("SELECT 
+                                *
+                                FROM
+                                    tb_userspasswordsrecoveries pr
+                                        INNER JOIN
+                                    tb_users u ON u.iduser = pr.iduser
+                                        INNER JOIN
+                                    tb_persons p ON p.idperson = u.idperson
+                                WHERE 
+                                 pr.idrecovery = :idrecovery
+                                 AND pr.dtrecovery is null
+                                 AND date_add(pr.dtregister, INTERVAL 1 HOUR) >= NOW()
+                        ", array(":idrecovery" => $idrecovery));
+        
+        if(count($results) === 0){
+            throw new \Exception("Não foi possível reucperar a senha");
+        }else{
+            return $results[0];
+        }
+        
+        
+    }
+    
+    
+    public static function setForgotUser($idrecovery){
+        
+        $sql = new Sql();
+        
+        $sql->query("UPDATE tb_userpasswordsrecoveries SET dtrecovery = NOW() WHERE idrecovery = :idrecovery", array(":idrecovery" => $idrecovery));
+        
+        
+    }
+    
+    public function setPassword($password){
+        
+        $sql = new Sql();
+        
+        $sql->query("UPDATE tb_users SET despassword = :password WHERE iduser = :iduser", array(":iduser" => $this->getiduser() , ":password" => $password));
         
     }
 }
