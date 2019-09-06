@@ -8,6 +8,7 @@ use \Slim\Slim;
 use \Hcode\Page;
 use \Hcode\PageAdmin;
 use \Hcode\Model\User;
+use \Hcode\Model\Category;
 
 $app = new Slim();
 
@@ -209,6 +210,91 @@ $app->post("/admin/forgot/reset", function(){
     ],'/views/admin/');
     
     $page->setTpl('forgot/forgot-reset-success');
+    
+});
+
+$app->get("/admin/categories", function(){
+    
+    $categories = Category::listAll();
+    
+    $page = new Page([],'/views/admin/');
+    
+    $page->setTpl("categories/categories",[
+        "categories" => $categories
+    ]);
+});
+
+
+$app->get("/admin/categories/create", function(){
+   
+    User::verifyLogin();
+    
+    $page = new Page([],'/views/admin/');
+    
+    $page->setTpl("categories/categories-create");
+    
+});
+
+$app->post("/admin/categories/create", function(){
+   
+    User::verifyLogin();
+    
+    
+    $category = new Category();
+    
+    $category->setData($_POST);
+    
+    $category->save();
+    
+    header("Location: /e-commerce/admin/categories");
+    exit;
+    
+    
+});
+
+$app->get("/admin/categories/:idcategory/delete",function($idcategory){
+    
+    User::verifyLogin();
+    
+    $category = new Category();
+    
+    $category->get((int)$idcategory);
+    
+    $category->delete();
+    
+    header("Location: /e-commerce/admin/categories");
+    exit;
+});
+
+$app->get("/admin/categories/:idcategory",function($idcategory){
+    
+    User::verifyLogin();
+    
+    $category = new Category();
+    $page = new Page([],"/views/admin/");
+    
+    $category->get((int)$idcategory);
+    
+    $page->setTpl("categories/categories-update",["category" => $category->getData()]);   
+    
+    
+});
+
+$app->post("/admin/categories/:idcategory",function($idcategory){
+    
+    User::verifyLogin();
+    
+    $category = new Category();
+    
+    $category->get((int)$idcategory);
+    
+    $category->setData($_POST);
+    
+    $category->save();
+    
+    header("Location: /e-commerce/admin/categories");
+    exit;
+    
     
 });
 
