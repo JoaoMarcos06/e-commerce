@@ -298,6 +298,18 @@ $app->post("/admin/categories/:idcategory",function($idcategory){
     
 });
 
+$app->get("/category/:id",function($id){
+    
+    $category = new Category();
+    
+    $category->get((int)$id);
+    
+    $page = new Page();
+    
+    $page->setTpl("category",["category" => $category->getData(), "products" => '']);
+    
+    
+});
 
 
 $app->run();
