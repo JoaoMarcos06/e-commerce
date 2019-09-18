@@ -13,8 +13,9 @@ $app = new Slim();
 
 $app->config('debug', true);
 
-require_once 'Routes/Routes.php';
-require_once 'Routes/Routes-Admin.php';
+require_once 'helpers/functions.php';
+require_once 'routes/Routes.php';
+require_once 'routes/Routes-Admin.php';
 
 
 $app->run();

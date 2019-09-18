@@ -17,6 +17,18 @@ class Product extends Model {
         
     }
     
+    public static function checklist($list){
+        
+        foreach($list as &$row){
+            $p = new Product();
+            $p->setData($row);
+            $row = $p->getData();
+            
+        }
+        
+        return $list;
+        
+    }
     
     public function save(){
         
@@ -89,6 +101,9 @@ class Product extends Model {
     
     public function uploadPhoto($file){
         
+        if(!$file["name"]==""){
+           
+        
         $ext = explode(".",$file["name"]);
         $ext = end($ext);
         
@@ -119,6 +134,7 @@ class Product extends Model {
         imagedestroy($image);
         
         $this->checkPhoto();
+    }
     }
     
 
