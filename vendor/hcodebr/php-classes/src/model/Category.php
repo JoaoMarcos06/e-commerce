@@ -5,6 +5,7 @@ namespace Hcode\Model;
 use \Hcode\DB\Sql;
 use \Hcode\Model;
 use \Hcode\MailerPHP;
+use \Hcode\Model\Product;
 
 class Category extends Model {
     
@@ -66,9 +67,56 @@ class Category extends Model {
            
         }
         
-         var_dump($_SERVER["DOCUMENT_ROOT"].DIRECTORY_SEPARATOR."views/includes/categories-menu.html");
-            
             file_put_contents($_SERVER["DOCUMENT_ROOT"]."/e-commerce/views/includes/categories-menu.html",implode('',$html));
+    }
+    
+    public function getProducts($related = true){
+        
+        $Sql = new Sql();
+         
+        if($related){
+            return $Sql->select("
+                SELECT * FROM tb_products WHERE idproduct IN (
+                    SELECT p.idproduct 
+                    FROM tb_products p 
+                    INNER JOIN tb_productscategories pc ON p.idproduct = pc.idproduct 
+                    WHERE pc.idcategory = :idcategory
+                );",
+                [":idcategory" => $this->getidcategory()]);
+        }else{
+            return $Sql->select("
+                SELECT * FROM tb_products WHERE idproduct NOT IN (
+                    SELECT p.idproduct 
+                    FROM tb_products p 
+                    INNER JOIN tb_productscategories pc ON p.idproduct = pc.idproduct 
+                    WHERE pc.idcategory = :idcategory
+                );",
+                [":idcategory" => $this->getidcategory()]);
+        }
+        
+        
+    }
+    
+    public function addProduct(Product $product){
+        
+        $Sql = new Sql();
+        
+        var_dump($Sql->query("INSERT INTO tb_productscategories(idcategory, idproduct) VALUES (:idcategory, :idproduct)",[
+            ":idcategory" => $this->getidcategory(),
+            ":idproduct" => $product->getidproduct()
+        ]));
+        
+    }
+    
+    public function removeProduct(Product $product){
+        
+        $Sql = new Sql();
+        
+        $Sql->query("DELETE FROM tb_productscategories WHERE idcategory = :idcategory AND idproduct = :idproduct",[
+            ":idcategory" => $this->getidcategory(),
+            ":idproduct" => $product->getidproduct()
+        ]);
+        
     }
 }
 
