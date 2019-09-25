@@ -104,40 +104,58 @@ class Product extends Model {
         if(!$file["name"]==""){
            
         
-        $ext = explode(".",$file["name"]);
-        $ext = end($ext);
+            $ext = explode(".",$file["name"]);
+            $ext = end($ext);
+
+            switch($ext){
+                case "jpg":
+                case "jpeg":
+                    $image = imagecreatefromjpeg($file["tmp_name"]);
+                break;
+
+                case "gif":
+                    $image = imagecreatefromgif($file["tmp_name"]);                
+                break;
+
+                case "png":
+                    $image = imagecreatefrompng($file["tmp_name"]);
+                break;
+            }
         
-        switch($ext){
-            case "jpg":
-            case "jpeg":
-                $image = imagecreatefromjpeg($file["tmp_name"]);
-            break;
-                
-            case "gif":
-                $image = imagecreatefromgif($file["tmp_name"]);                
-            break;
-                
-            case "png":
-                $image = imagecreatefrompng($file["tmp_name"]);
-            break;
+            $dist = $_SERVER['DOCUMENT_ROOT'].DIRECTORY_SEPARATOR.
+                "e-commerce".DIRECTORY_SEPARATOR.
+                "assets".DIRECTORY_SEPARATOR.
+                "arquivos".DIRECTORY_SEPARATOR.
+                "products".DIRECTORY_SEPARATOR.
+                $this->getidproduct()."jpg";
+
+            imagejpeg($image,$dist);
+
+            imagedestroy($image);
+
+            $this->checkPhoto();
         }
-        
-        $dist = $_SERVER['DOCUMENT_ROOT'].DIRECTORY_SEPARATOR.
-            "e-commerce".DIRECTORY_SEPARATOR.
-            "assets".DIRECTORY_SEPARATOR.
-            "arquivos".DIRECTORY_SEPARATOR.
-            "products".DIRECTORY_SEPARATOR.
-            $this->getidproduct()."jpg";
-        
-        imagejpeg($image,$dist);
-        
-        imagedestroy($image);
-        
-        $this->checkPhoto();
-    }
     }
     
-
+    public function getFromUrl($desUrl){
+        
+        $sql = new Sql();
+        
+        $rows = $sql->select("SELECT * FROM tb_products WHERE desurl = :desurl LIMIT 1", [":desurl" => $desUrl]);
+        
+        $this->setData($rows[0]);
+        
+    }
+    
+    public function getCategories(){
+        
+        $sql = new Sql();
+        
+        return $sql->select("SELECT * FROM tb_categories c 
+        INNER JOIN tb_productscategories pc ON c.idcategory = pc.idcategory 
+        WHERE pc.idproduct = :idproduct",[":idproduct" => $this->getidproduct()]);
+    }
+    
 }
 
 ?>
