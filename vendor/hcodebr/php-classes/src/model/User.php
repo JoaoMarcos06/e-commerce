@@ -46,14 +46,24 @@ class User extends Model {
         
     }
     
+    
+    public static function getFromSession(){
+        
+         $user = new User();
+        
+        if(isset($_SESSION[User::SESSION]) && (int)$_SESSION[User::SESSION]["iduser"] > 0){
+            
+            $user->setData($_SESSION[User::SESSION]);
+        }
+           
+        return $user;
+        
+    }
+    
     public static function verifyLogin($inadmin = true){
         
-        if(
-            !isset($_SESSION[User::SESSION]) ||
-            !$_SESSION[User::SESSION] ||
-            !(int)$_SESSION[User::SESSION]["iduser"] > 0 ||
-            (bool)$_SESSION[User::SESSION]["inadmin"] !== $inadmin
-          ){
+        if(User::checkLogin($inadmin)){
+            
             header("Location: /e-commerce/admin/login");
             exit;
         }
@@ -63,7 +73,27 @@ class User extends Model {
     public static function logout(){
         $_SESSION[User::SESSION] = NULL;
     }
-    
+
+    public static function checkLogin($inadmin = true){
+        
+        if(!isset($_SESSION[User::SESSION]) ||
+            !$_SESSION[User::SESSION] ||
+            !(int)$_SESSION[User::SESSION]["iduser"] > 0 ){
+           return false; 
+        }else{
+            
+            if($inadmin === true && (bool)$_SESSION[User::SESSION]["inadmin"] === true){
+                return true;
+            }else if ($inadmin === false){
+                return true;
+            }else{
+                return false;
+            }
+            
+        }
+        
+    }   
+           
     public static function listAll(){
         
         $sql = new Sql();
