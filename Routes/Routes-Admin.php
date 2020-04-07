@@ -283,6 +283,65 @@ $app->post("/admin/categories/:idcategory",function($idcategory){
     
 });
 
+$app->get("/admin/categories/:idcategory/products",function($idcategory){
+    
+    User::verifyLogin();
+    
+    $category = new Category();
+    
+    $category->get((int)$idcategory);
+    
+    $page = new Page([],"/views/admin/");
+    
+    $page->setTpl("categories/categories-products",[
+            "category" => $category->getData(),
+            "productsRelated" =>$category->getProducts(),
+            "productsNotRelated" => $category->getProducts(false)
+    ]);    
+    
+});
+
+$app->get("/admin/categories/:idcategory/products/:idproduct/add",function($idcategory,$idproduct){
+    
+    User::verifyLogin();
+    
+    $category = new Category();
+    
+    $category->get((int)$idcategory);
+    
+    $product = new Product();
+    
+    $product->get((int)$idproduct);
+    
+    $category->addProduct($product);
+    
+    header("Location: /e-commerce/admin/categories");
+    exit;
+    
+    
+});
+
+$app->get("/admin/categories/:idcategory/products/:idproduct/remove",function($idcategory,$idproduct){
+    
+    User::verifyLogin();
+    
+    $category = new Category();
+    
+    $category->get((int)$idcategory);
+    
+    $product = new Product();
+    
+    $product->get((int)$idproduct);
+    
+    $category->removeProduct($product);
+    
+    header("Location: /e-commerce/admin/categories");
+    exit;
+    
+      
+    
+});
+
 $app->get("/admin/products", function(){
     
     User::verifyLogin();
@@ -349,7 +408,7 @@ $app->post("/admin/products/:idproduct", function($idproduct){
     
     $product->save();
     
-   if(!empty($_FILES)){
+   if(!empty($_FILES["file"])){
         $product->uploadPhoto($_FILES["file"]);
    }    
     header("Location: /e-commerce/admin/products");
@@ -372,6 +431,8 @@ $app->get("/admin/products/:idproduct/delete", function($idproduct){
     header("Location: /e-commerce/admin/products");
     exit;
 });
+
+
 
 
 ?>

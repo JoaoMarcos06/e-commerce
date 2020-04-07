@@ -9,6 +9,7 @@ use \Hcode\MailerPHP;
 class User extends Model {
     
     const SESSION = "user";
+    const SESSION_ERROR = "user_error";
     const SECRET = "SERCRETKEYCRYPTED";
     
     public static function login($user, $pass){
@@ -16,7 +17,7 @@ class User extends Model {
         $sql = new Sql();
         
         
-        $results = $sql->select("SELECT * FROM tb_users WHERE deslogin = :LOGIN", array(
+        $results = $sql->select("SELECT * FROM tb_users u INNER JOIN tb_persons p USING(idperson) WHERE u.deslogin = :LOGIN", array(
             ':LOGIN' => $user
         ));
         
@@ -62,16 +63,19 @@ class User extends Model {
     
     public static function verifyLogin($inadmin = true){
         
-        if(User::checkLogin($inadmin)){
-            
-            header("Location: /e-commerce/admin/login");
-            exit;
+        if(!User::checkLogin($inadmin)){
+            if($inadmin){
+                header("Location: /e-commerce/admin/login");
+            }else{
+                header("Location: /e-commerce/login");
+            }
         }
         
     }
     
     public static function logout(){
         $_SESSION[User::SESSION] = NULL;
+        $_SESSION[User::SESSION_ERROR] = NULL;
     }
 
     public static function checkLogin($inadmin = true){
@@ -243,6 +247,26 @@ class User extends Model {
         $sql = new Sql();
         
         $sql->query("UPDATE tb_users SET despassword = :password WHERE iduser = :iduser", array(":iduser" => $this->getiduser() , ":password" => $password));
+        
+    }
+    
+    public static function setMsgError($msg){
+        
+        $_SESSION[User::SESSION_ERROR] = $msg;
+        
+    }
+    
+    public static function getMsgError(){
+        
+        $msg =  (isset($_SESSION[User::SESSION_ERROR])) ? $_SESSION[User::SESSION_ERROR] : "";
+        Cart::clearMsgError();
+        
+        return $msg;
+    }
+    
+     public static function clearMsgError(){
+        
+         $_SESSION[User::SESSION_ERROR] = NULL;
         
     }
 }
