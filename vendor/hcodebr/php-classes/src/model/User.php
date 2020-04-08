@@ -11,7 +11,7 @@ class User extends Model {
     const SESSION = "user";
     const SESSION_ERROR = "user_error";
     const REGISTER_ERROR = "register_error";
-    const SECRET = "SERCRETKEYCRYPTED";
+    const SECRET = "tAKOFKriNjrkFUYM";
     
     public static function login($user, $pass){
         
@@ -174,7 +174,7 @@ class User extends Model {
     }
     
     
-    public static function getForgot($email){
+    public static function getForgot($email, $inadmin = true){
         
         $sql = new Sql();
         
@@ -198,7 +198,12 @@ class User extends Model {
                 $dataRecovery = $recovery[0];
                 
                 $code = base64_encode(mcrypt_encrypt(MCRYPT_RIJNDAEL_128, User::SECRET, $dataRecovery["idrecovery"], MCRYPT_MODE_ECB));
-                $link = "http://localhost/e-commerce/admin/forgot/reset?code=".$code;
+                if($inadmin){
+                    $link = "http://localhost/e-commerce/admin/forgot/reset?code=".$code;
+                }else{
+                    $link = "http://localhost/e-commerce/forgot/reset?code=".$code;
+                }
+                
                 
                 $mailer = new MailerPHP($data["desemail"], $data["desperson"], "Redefinir senha", "forgot" ,array(
                 "name" => $data["desperson"],
